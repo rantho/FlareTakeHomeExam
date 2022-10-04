@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,7 +14,7 @@ namespace FlareTakeHomeExam
 		[DllImport("kernel32.dll", EntryPoint = "GetConsoleWindow", SetLastError = true)] private static extern IntPtr GetConsoleHandle();
 		[DllImport("user32.dll")] private static extern int GetWindowRect(IntPtr hwnd, out Rectangle rect);
 
-		public HashSet<MyRectangle> Rectangles = new HashSet<MyRectangle>();
+		public Collection<MyRectangle> Rectangles = new Collection<MyRectangle>();
 
 		#region : Properties
 		public int Left { get; set; }
@@ -32,6 +33,15 @@ namespace FlareTakeHomeExam
 		/// <param name="numOfColCells">st number columns</param>
 		public GridRectangle(int cellsize, int numOfRowCells, int numOfColCells)
 		{
+			if(cellsize <= 0)
+			{
+				throw new ArgumentOutOfRangeException("Cell size should be greater than 0");
+			}
+			if(numOfRowCells < 5 || numOfRowCells > 25 || numOfColCells < 5 || numOfColCells > 25)
+			{
+				throw new ArgumentOutOfRangeException("A grid must have a width and height of no less than 5 and no greater than 25");
+			}
+
 			CellSize = cellsize;
 			NumberOfColumnCells = numOfColCells;
 			NumberOfRowCells = numOfRowCells;
@@ -41,11 +51,16 @@ namespace FlareTakeHomeExam
 		}
 
 		/// <summary>
-		/// 
+		/// Place rectangles on the grid
 		/// </summary>
 		/// <param name="rec">MyRectangle</param>
 		public void Add(MyRectangle rec)
 		{
+			if(rec.Point1.X < 0 || rec.Point1.Y < 0 || rec.Point2.X < 0 || rec.Point2.Y < 0)
+			{
+				throw new ArgumentException("Positions on the grid are non-negative integer coordinates starting at 0");
+			}
+
 			Rectangles.Add(rec);
 			var x = rec.Point1.X * (CellSize);
 			var y = rec.Point1.Y * (CellSize);
@@ -58,24 +73,55 @@ namespace FlareTakeHomeExam
 			Rectangle strucRect = new Rectangle(x, y, width, height);
 			strucRect.CopyBounds(rec);
 		}
-		public void Remove(MyRectangle rectangle)
-		{
-			if (rectangle != null) Rectangles.Remove(rectangle);
 
-			Rectangles.Remove(rectangle);
-		}
 		/// <summary>
-		/// Removes a rectangles with point21 or point2
+		/// Remove a rectangle from the grid by specifying any point within the rectangle
 		/// </summary>
 		/// <param name="point"></param>
 		public void Remove(Point point)
 		{
-			var rectangle = Rectangles.FirstOrDefault(s=> (s.Point1.X == point.X && s.Point1.Y == point.Y) ||
-			(s.Point2.X == point.X && s.Point2.Y == point.Y));
-			
-			if (rectangle != null) Rectangles.Remove(rectangle);
+			var tempRec = new MyRectangle(String.Empty, point, new Point(point.X + 1, point.Y + 1));
+
+			var x = tempRec.Point1.X * (CellSize);
+			var y = tempRec.Point1.Y * (CellSize);
+			var width = Math.Abs(tempRec.Point2.X - tempRec.Point1.X) * CellSize;
+			var height = Math.Abs(tempRec.Point2.Y - tempRec.Point1.Y) * CellSize;
+
+			x += CellSize;
+			y += CellSize;
+
+			Rectangle strucRect = new Rectangle(x, y, width, height);
+			strucRect.CopyBounds(tempRec);
+
+
+			var myRectangles = Rectangles.ToList();
+
+			myRectangles.ForEach(r2 =>
+			{
+				var isOverLap = !(tempRec.Left >= r2.Left + r2.Width) &&
+						 !(tempRec.Left + tempRec.Width <= r2.Left) &&
+						 !(tempRec.Top >= r2.Top + r2.Height) &&
+						 !(tempRec.Top + tempRec.Height <= r2.Top);
+
+				if (isOverLap)
+				{
+					Rectangles.Remove(r2);
+				}
+			});
 		}
 
+		/// <summary>
+		/// Find a rectangle based on a given position
+		/// </summary>
+		/// <param name="point"></param>
+		/// <returns></returns>
+		public MyRectangle Find(Point point)
+		{
+			var rectangle = Rectangles.FirstOrDefault(s => (s.Point1.X == point.X && s.Point1.Y == point.Y) ||
+			(s.Point2.X == point.X && s.Point2.Y == point.Y));
+
+			return rectangle;
+		}
 		public void ClearScreen()
 		{
 			Console.WindowHeight = CellSize;

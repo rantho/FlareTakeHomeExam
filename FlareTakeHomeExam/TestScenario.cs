@@ -4,7 +4,7 @@ namespace FlareTakeHomeExam
 {
 	internal static class TestScenario
 	{
-		internal static void TestCase(int scenario)
+		internal static void TestCaseUI(int scenario)
 		{
 			var grid = new GridRectangle(20,10,14);
 

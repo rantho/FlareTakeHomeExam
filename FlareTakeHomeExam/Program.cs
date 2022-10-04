@@ -8,7 +8,7 @@ namespace FlareTakeHomeExam
 		static void Main(string[] args)
 		{
 
-		 TestScenario.TestCase(5);
+		 TestScenario.TestCaseUI(5);
 
 			Console.ReadKey(true);
 		}

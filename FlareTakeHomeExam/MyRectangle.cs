@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FlareTakeHomeExam
 {
-	public class MyRectangle : IBounds
+	public class MyRectangle : IBounds, ICloneable
 	{
 		public MyRectangle()
 		{
@@ -30,6 +30,21 @@ namespace FlareTakeHomeExam
 		public int Bottom { get; set; }
 		public int Width { get; set; }
 		public int Height { get; set; }
+
+		public object Clone()
+		{
+			return new MyRectangle(Name, Point1, Point2)
+			{
+				IsOverlap = IsOverlap,
+				IsExtending = IsExtending,
+				Left = Left,	
+				Right = Right,
+				Top = Top,
+				Bottom = Bottom,
+				Width = Width,
+				Height = Height
+			};
+		}
 
 		public Rectangle ToRectangle()
 		{
